@@ -58,11 +58,11 @@ public class Nodo {
 	}
 
 	private void executaEnvioDeMensagem() {
-		// TODO Auto-generated method stub
+		// TODO: enviar uma mensagem (vamos fazer via socket DATAGRAM)
 	}
 
 	private void executaRecebimentoDeMensagem() {
-		// TODO Auto-generated method stub
+		// TODO: vamos subir um socket pra receber mensagens creio eu..
 	}
 
 	private void carregaProcessos() throws NumberFormatException, UnknownHostException {
