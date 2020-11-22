@@ -18,7 +18,7 @@ public class Evento {
 	public int i;
 	public int c;
 	public int d;
-	public TipoMensagem tipo;
+	public TipoEvento tipo;
 	public int t;
 	public int s;
 	
@@ -27,7 +27,7 @@ public class Evento {
 		this.m = m;
 		this.i = i;
 		this.c = c;
-		this.tipo = TipoMensagem.LOCAL;
+		this.tipo = TipoEvento.LOCAL;
 	}
 	
 	@Override
