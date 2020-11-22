@@ -1,3 +1,4 @@
+import java.util.Random;
 
 public class Inicia {
 
@@ -8,7 +9,7 @@ public class Inicia {
 			return;
 		}
 		
-		Processo proc = new Processo(Integer.parseInt(args[0]));
+		new Nodo(Integer.parseInt(args[0]));
 	}
 
 }
