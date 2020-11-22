@@ -8,8 +8,10 @@ import java.util.Scanner;
 public class Processo {
 
 	public ArrayList<Nodo> nodos = new ArrayList<>();
+	public int processo;
 	
 	public Processo(int processo) throws Exception {
+		this.processo = processo;
 		carregaProcessos();
 	}
 
