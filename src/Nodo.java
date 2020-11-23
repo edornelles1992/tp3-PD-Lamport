@@ -32,15 +32,17 @@ public class Nodo extends Data {
 		tRecebimento.stop();
 		super.fecharSocket();
 		System.out.println("===Fim Eventos===");
-
+		System.out.println("===Digite qualquer tecla para sair===");
+		Scanner scanner = new Scanner(System.in);
+		scanner.nextLine();
 	}
-	
+
 	private void executaEvento() throws Exception {
 		if (Math.random() < processos.get(processoId).chance) { // prob de chance
-			System.out.println("Enviando mensagem");
+//			System.out.println("Enviando mensagem");
 			executaEnvioDeMensagem();
 		} else {
-			System.out.println("Evento local!");
+//			System.out.println("Evento local!");
 			executaEventoLocal();
 		}
 	}
@@ -50,8 +52,8 @@ public class Nodo extends Data {
 		this.adicionaEvento(proc, TipoEvento.LOCAL, null, null, null);
 	}
 
-	private void adicionaEvento(Processo proc, TipoEvento tipo, Integer vrRlgEnviado, 
-			Integer idNodoRemetente, Integer vlrRlgDaMensagem) throws Exception {
+	private void adicionaEvento(Processo proc, TipoEvento tipo, Integer vrRlgEnviado, Integer idNodoRemetente,
+			Integer vlrRlgDaMensagem) throws Exception {
 		Evento novoEvento;
 		Evento eventoAnterior;
 		if (proc.eventos.isEmpty()) { // primeiro evento
@@ -63,8 +65,7 @@ public class Nodo extends Data {
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, vrRlgEnviado);
 				break;
 			case RECEBIMENTO:
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoRemetente,
-						vlrRlgDaMensagem);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoRemetente, vlrRlgDaMensagem);
 				break;
 			default:
 				throw new Exception("Tipo do Evento não definido");
@@ -96,7 +97,7 @@ public class Nodo extends Data {
 
 	private void executaEnvioDeMensagem() throws Exception {
 		while (recebendo == true) {
-			//Segura o fluxo e envio até terminar o fluxo de recebimento
+			// Segura o fluxo e envio até terminar o fluxo de recebimento
 		}
 		enviando = true;
 		Processo procSelecionado = selecionaProcessoAleatorio();
@@ -125,14 +126,15 @@ public class Nodo extends Data {
 				while (true) {
 					Mensagem mensagem = receberMensagem();
 					while (enviando == true) {
-						//Segura o fluxo e recebimento até terminar o fluxo de envio
+						// Segura o fluxo e recebimento até terminar o fluxo de envio
 					}
 					recebendo = true;
 					int processoOrigem = mensagem.processoOrigem;
 					int[] relogioOrigem = mensagem.relogioOrigem;
 					Processo processo = processos.get(processoId);
 					try {
-						adicionaEvento(processo, TipoEvento.RECEBIMENTO, null, processoOrigem, relogioOrigem[processoOrigem]);
+						adicionaEvento(processo, TipoEvento.RECEBIMENTO, null, processoOrigem,
+								relogioOrigem[processoOrigem]);
 						recebendo = false;
 					} catch (Exception e) {
 						System.out.println("Erro ao adicionar Evento de recebimento de mensagem");

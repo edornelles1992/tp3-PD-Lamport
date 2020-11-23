@@ -90,7 +90,7 @@ public class Data {
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
-			System.out.println("Mensagem Recebida");
+	//		System.out.println("Mensagem Recebida");
 			byte[] recBytes = receiveDatagram.getData();
 			Mensagem mensagem = byteArrayToMensagem(recBytes);
 			return mensagem;
