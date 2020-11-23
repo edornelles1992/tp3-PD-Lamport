@@ -63,7 +63,6 @@ public class Nodo extends Data {
 
 	private void executaEnvioDeMensagem() {
 		Processo procSelecionado = selecionaProcessoAleatorio();
-		// TODO: enviar uma mensagem (vamos fazer via socket DATAGRAM)
 		super.conectarCliente(procSelecionado.host, procSelecionado.port);
 		super.enviarMensagem(new Mensagem(processoId, valorRelogio()));
 		super.desconectarCliente();
@@ -93,7 +92,7 @@ public class Nodo extends Data {
 	}
 	
 	public int valorRelogio() {
-		return processos.get(processoId).eventos.size();
+		return processos.get(processoId).relogios[processoId];
 	}
 
 	private void carregaProcessos() throws NumberFormatException, UnknownHostException {
