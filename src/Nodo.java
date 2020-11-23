@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
-public class Nodo {
+public class Nodo extends Data {
 
 	public ArrayList<Processo> processos = new ArrayList<>();
 	public int processo;
@@ -14,6 +14,7 @@ public class Nodo {
 	public int numProcessos;
 
 	public Nodo(int processo) throws Exception {
+		super.iniciarSocket();
 		this.processo = processo;
 		carregaProcessos();
 		executaNodo();
@@ -23,8 +24,7 @@ public class Nodo {
 		Random rand = new Random();
 		for (int i = 0; i < numeroEventos; i++) {
 			Thread.sleep((long) rand.nextInt(1000 - (500 - 1)) + 500); // evnts entre 0.5 e 1 seg
-			executaEvento();
-			
+			executaEvento();			
 		}
 		System.out.println("===Fim Eventos===");
 	}
@@ -58,11 +58,24 @@ public class Nodo {
 	}
 
 	private void executaEnvioDeMensagem() {
+		int processoSelecionado = selecionaProcessoAleatorio();
 		// TODO: enviar uma mensagem (vamos fazer via socket DATAGRAM)
 	}
 
+	private int selecionaProcessoAleatorio() {
+		Random rand = new Random();
+		int numProcessos = processos.size() - 1;
+		int procSorteado = rand.nextInt(numProcessos - (0 - 1) + 0);
+		while (procSorteado == processo) {
+			procSorteado = rand.nextInt(numProcessos - (0 - 1) + 0);
+		}
+		return procSorteado;
+	}
+
 	private void executaRecebimentoDeMensagem() {
-		// TODO: vamos subir um socket pra receber mensagens creio eu..
+		while (true) {
+			Mensagem mensagem = super.receberMensagem();			
+		}
 	}
 
 	private void carregaProcessos() throws NumberFormatException, UnknownHostException {
