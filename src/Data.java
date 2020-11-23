@@ -11,7 +11,7 @@ import java.net.SocketException;
 
 public class Data {
 
-	private static DatagramSocket clientSocket;	
+	private static DatagramSocket clientSocket;
 	private static Integer timeout = 1500;
 	
 	/**
@@ -22,8 +22,8 @@ public class Data {
 			clientSocket.connect(endereco, porta);
 		} catch (Exception e) {
 			System.out.println("Erro ao conectar no servidor!");
-			System.out.println("Tentando conectar novamente...");
-			conectarCliente(endereco, porta);
+			System.out.println("Encerrado Processo");
+			System.exit(0);
 		}
 	}
 	
@@ -44,10 +44,8 @@ public class Data {
 	 * Fecha a conexão com o socket.
 	 */
 	protected static void desconectarCliente() {
-		System.out.println("Desconectando do servidor...");
 		clientSocket.close();
 		clientSocket.disconnect();
-		System.out.println("Desconectado com sucesso!");
 	}
 	
 	/**
@@ -59,17 +57,14 @@ public class Data {
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
-			System.out.println("Houve um problema no envio da mensagem...");
-			System.out.println("Tentando restabelecer a conexão...");
-			enviarMensagem(mensagem);
+			System.out.println("Erro ao enviar mensagem (Processo destino não disponivel.)");
+			System.out.println("Encerrado Processo");
+			System.exit(0);
 		}
 	}
 	
 	/**
-	 * Converte o objeto pacote para um byteArray
-	 * 
-	 * @param pacote
-	 * @return
+	 * Converte o objeto mensagem para um byteArray
 	 */
 	private static byte[] mensagemToByteArray(Mensagem mensagem) {
 		try {
@@ -90,12 +85,21 @@ public class Data {
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
-			Mensagem mensagem = byteArrayToPacote(recBytes);
+			Mensagem mensagem = byteArrayToMensagem(recBytes);
 			return mensagem;
 		} catch (IOException e) {
+			try {
+				Thread.sleep(100l);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			return receberMensagem();
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println("Erro ao receber mensagem");
+			System.out.println("Encerrado Processo");
+			System.exit(0);
 			return null;
 		}
 	}
@@ -103,7 +107,7 @@ public class Data {
 	/**
 	 * Converte de byteArray para o objeto mensagem.
 	 */
-	private static Mensagem byteArrayToPacote(byte[] mensagem) {
+	private static Mensagem byteArrayToMensagem(byte[] mensagem) {
 		try {
 			ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(mensagem));
 			Mensagem mensagemObj = (Mensagem) iStream.readObject();

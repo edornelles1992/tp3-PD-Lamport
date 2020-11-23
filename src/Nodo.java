@@ -12,7 +12,8 @@ public class Nodo extends Data {
 	public int processoId;
 	public int numeroEventos = 100;
 	public int numProcessos;
-	public static Thread recebimento = null;
+	public static Thread tRecebimento = null;
+	public boolean recebendo, enviando;
 
 	public Nodo(int processo) throws Exception {
 		super.iniciarSocket();
@@ -22,50 +23,86 @@ public class Nodo extends Data {
 		executaNodo();
 	}
 
-	private void executaNodo() throws InterruptedException {
+	private void executaNodo() throws Exception {
 		Random rand = new Random();
 		for (int i = 0; i < numeroEventos; i++) {
 			Thread.sleep((long) rand.nextInt(1000 - (500 - 1)) + 500); // evnts entre 0.5 e 1 seg
-			executaEvento();			
+			executaEvento();
 		}
 		System.out.println("===Fim Eventos===");
 	}
 
-	private void executaEvento() {
-		if (Math.random() < processos.get(processoId).chance) { //prob de chance
+	private void executaEvento() throws Exception {
+		if (Math.random() < processos.get(processoId).chance) { // prob de chance
 			System.out.println("Enviando mensagem");
 			executaEnvioDeMensagem();
 		} else {
 			System.out.println("Evento local!");
 			executaEventoLocal();
-		}	
+		}
 	}
 
-	private void executaEventoLocal() {
+	private void executaEventoLocal() throws Exception {
 		Processo proc = processos.get(processoId);
+		this.adicionaEvento(proc, TipoEvento.LOCAL, null, null, null);
+	}
+
+	private void adicionaEvento(Processo proc, TipoEvento tipo, Integer vrRlgEnviado, 
+			Integer idNodoRemetente, Integer vlrRlgDaMensagem) throws Exception {
 		Evento novoEvento;
-		if (proc.eventos.isEmpty()) { //primeiro evento
-			novoEvento = new Evento(
-					System.currentTimeMillis(),
-					processoId, 1);
-			proc.eventos.add(novoEvento);
-			proc.relogios[processoId] = proc.relogios[processoId] + 1;
-		} else { //existem eventos anteriores
-			Evento eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
-			novoEvento = new Evento(
-					System.currentTimeMillis(),
-					processoId, eventoAnterior.c + 1);
-			proc.eventos.add(novoEvento); //TODO: Avaliar fluxo do algoritmo de lamport
-			proc.relogios[processoId] = proc.relogios[processoId] + 1;
+		Evento eventoAnterior;
+		if (proc.eventos.isEmpty()) { // primeiro evento
+			switch (tipo) {
+			case LOCAL:
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1);
+				break;
+			case ENVIO:
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, vrRlgEnviado);
+				break;
+			case RECEBIMENTO:
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoRemetente,
+						vlrRlgDaMensagem);
+				break;
+			default:
+				throw new Exception("Tipo do Evento não definido");
+			}
+		} else { // existem eventos anteriores (incrementar)
+			switch (tipo) {
+			case LOCAL:
+				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1);
+				break;
+			case ENVIO:
+				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1, vrRlgEnviado);
+				break;
+			case RECEBIMENTO:
+				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1, idNodoRemetente,
+						vlrRlgDaMensagem);
+				break;
+			default:
+				throw new Exception("Tipo do Evento não definido");
+			}
+
 		}
+		proc.eventos.add(novoEvento); // grava evento
+		proc.relogios[processoId] = proc.relogios[processoId] + 1; // incrementa relogio local
 		System.out.println(novoEvento.toString());
 	}
 
-	private void executaEnvioDeMensagem() {
+	private void executaEnvioDeMensagem() throws Exception {
+		while (recebendo == true) {
+			//Segura o fluxo e envio até terminar o fluxo de recebimento
+		}
+		enviando = true;
 		Processo procSelecionado = selecionaProcessoAleatorio();
 		super.conectarCliente(procSelecionado.host, procSelecionado.port);
-		super.enviarMensagem(new Mensagem(processoId, valorRelogio()));
+		this.adicionaEvento(processos.get(processoId), TipoEvento.ENVIO, processos.get(processoId).relogios[processoId],
+				null, null);
+		super.enviarMensagem(new Mensagem(processoId, processos.get(processoId).relogios));
 		super.desconectarCliente();
+		enviando = false;
 	}
 
 	private Processo selecionaProcessoAleatorio() {
@@ -79,20 +116,30 @@ public class Nodo extends Data {
 	}
 
 	private void iniciaRecebimentoDeMensagens() {
-		recebimento = (new Thread(){
+		tRecebimento = (new Thread() {
 			@Override
-			public void run(){
+			public void run() {
 				while (true) {
 					Mensagem mensagem = receberMensagem();
-					//TODO: receber a mensagem e atualizar com algoritmo de lamport
+					while (enviando == true) {
+						//Segura o fluxo e recebimento até terminar o fluxo de envio
+					}
+					recebendo = true;
+					int processoOrigem = mensagem.processoOrigem;
+					int[] relogioOrigem = mensagem.relogioOrigem;
+					Processo processo = processos.get(processoId);
+					try {
+						adicionaEvento(processo, TipoEvento.RECEBIMENTO, null, processoOrigem, relogioOrigem[processoOrigem]);
+						recebendo = false;
+					} catch (Exception e) {
+						System.out.println("Erro ao adicionar Evento de recebimento de mensagem");
+						recebendo = false;
+						e.printStackTrace();
+					}
 				}
 			}
 		});
-		recebimento.start();
-	}
-	
-	public int valorRelogio() {
-		return processos.get(processoId).relogios[processoId];
+		tRecebimento.start();
 	}
 
 	private void carregaProcessos() throws NumberFormatException, UnknownHostException {
