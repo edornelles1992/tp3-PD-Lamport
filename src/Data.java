@@ -43,7 +43,7 @@ public class Data {
 	/**
 	 * Fecha a conexão com o socket.
 	 */
-	protected static void desconectarServidor() {
+	protected static void desconectarCliente() {
 		System.out.println("Desconectando do servidor...");
 		clientSocket.close();
 		clientSocket.disconnect();

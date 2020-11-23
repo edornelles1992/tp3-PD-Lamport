@@ -9,14 +9,16 @@ import java.util.Scanner;
 public class Nodo extends Data {
 
 	public ArrayList<Processo> processos = new ArrayList<>();
-	public int processo;
+	public int processoId;
 	public int numeroEventos = 100;
 	public int numProcessos;
+	public static Thread recebimento = null;
 
 	public Nodo(int processo) throws Exception {
 		super.iniciarSocket();
-		this.processo = processo;
+		this.processoId = processo;
 		carregaProcessos();
+		iniciaRecebimentoDeMensagens();
 		executaNodo();
 	}
 
@@ -30,7 +32,7 @@ public class Nodo extends Data {
 	}
 
 	private void executaEvento() {
-		if (Math.random() < processos.get(processo).chance) { //prob de chance
+		if (Math.random() < processos.get(processoId).chance) { //prob de chance
 			System.out.println("Enviando mensagem");
 			executaEnvioDeMensagem();
 		} else {
@@ -40,42 +42,56 @@ public class Nodo extends Data {
 	}
 
 	private void executaEventoLocal() {
-		Processo proc = processos.get(processo);
+		Processo proc = processos.get(processoId);
 		Evento novoEvento;
 		if (proc.eventos.isEmpty()) { //primeiro evento
 			novoEvento = new Evento(
 					System.currentTimeMillis(),
-					processo, 1);
+					processoId, 1);
 			proc.eventos.add(novoEvento);
 		} else { //existem eventos anteriores
 			Evento eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
 			novoEvento = new Evento(
 					System.currentTimeMillis(),
-					processo, eventoAnterior.c + 1);
+					processoId, eventoAnterior.c + 1);
 			proc.eventos.add(novoEvento); //TODO: Avaliar fluxo do algoritmo de lamport
 		}
 		System.out.println(novoEvento.toString());
 	}
 
 	private void executaEnvioDeMensagem() {
-		int processoSelecionado = selecionaProcessoAleatorio();
+		Processo procSelecionado = selecionaProcessoAleatorio();
 		// TODO: enviar uma mensagem (vamos fazer via socket DATAGRAM)
+		super.conectarCliente(procSelecionado.host, procSelecionado.port);
+		super.enviarMensagem(new Mensagem(processoId, valorRelogio()));
+		super.desconectarCliente();
 	}
 
-	private int selecionaProcessoAleatorio() {
+	private Processo selecionaProcessoAleatorio() {
 		Random rand = new Random();
 		int numProcessos = processos.size() - 1;
 		int procSorteado = rand.nextInt(numProcessos - (0 - 1) + 0);
-		while (procSorteado == processo) {
+		while (procSorteado == processoId) {
 			procSorteado = rand.nextInt(numProcessos - (0 - 1) + 0);
 		}
-		return procSorteado;
+		return processos.get(procSorteado);
 	}
 
-	private void executaRecebimentoDeMensagem() {
-		while (true) {
-			Mensagem mensagem = super.receberMensagem();			
-		}
+	private void iniciaRecebimentoDeMensagens() {
+		recebimento = (new Thread(){
+			@Override
+			public void run(){
+				while (true) {
+					Mensagem mensagem = receberMensagem();
+					//TODO: receber a mensagem e atualizar com algoritmo de lamport
+				}
+			}
+		});
+		recebimento.start();
+	}
+	
+	public int valorRelogio() {
+		return processos.get(processoId).eventos.size();
 	}
 
 	private void carregaProcessos() throws NumberFormatException, UnknownHostException {

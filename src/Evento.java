@@ -34,11 +34,11 @@ public class Evento {
 	public String toString() {
 		switch (tipo) {
 		case LOCAL:
-			return m + " " + i + " " + c + " " + tipo.getValue();
+			return m + " " + i + " " + c + i + " " + tipo.getValue();
 		case ENVIO:
-			return m + " " + i + " " + c + " " + tipo.getValue() + " " + d;
+			return m + " " + i + " " + c + i + " " + tipo.getValue() + " " + d;
 		case RECEBIMENTO:
-			return m + " " + i + " " + c + " " + tipo.getValue() + " " + s + " " + t;
+			return m + " " + i + " " + c + i + " " + tipo.getValue() + " " + s + " " + t;
 		default:
 			return "Tipo da mensagem não informado.";
 		}
