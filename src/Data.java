@@ -30,9 +30,9 @@ public class Data {
 	/**
 	 * Inicia o socket atribuindo um limite de tempo (timeout).
 	 */
-	protected static void iniciarSocket() {
+	protected static void iniciarSocket(int porta) {
 		try {
-			clientSocket = new DatagramSocket();
+			clientSocket = new DatagramSocket(porta);
 			clientSocket.setSoTimeout(timeout);
 		} catch (SocketException e) {
 			System.out.println("Erro ao iniciar socket");
@@ -44,8 +44,14 @@ public class Data {
 	 * Fecha a conexão com o socket.
 	 */
 	protected static void desconectarCliente() {
-		clientSocket.close();
 		clientSocket.disconnect();
+	}
+	
+	/**
+	 * Fecha socket.
+	 */
+	protected static void fecharSocket() {
+		clientSocket.close();
 	}
 	
 	/**
@@ -56,8 +62,8 @@ public class Data {
 			byte[] serialized = mensagemToByteArray(mensagem);
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
-		} catch (IOException e) {
-			System.out.println("Erro ao enviar mensagem (Processo destino não disponivel.)");
+		} catch (Exception e) {
+			System.out.println("Erro ao enviar mensagem (Processo destino já terminou a execução.)");
 			System.out.println("Encerrado Processo");
 			System.exit(0);
 		}
@@ -84,6 +90,7 @@ public class Data {
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
+			System.out.println("Mensagem Recebida");
 			byte[] recBytes = receiveDatagram.getData();
 			Mensagem mensagem = byteArrayToMensagem(recBytes);
 			return mensagem;

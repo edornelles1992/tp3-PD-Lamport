@@ -10,28 +10,31 @@ public class Nodo extends Data {
 
 	public ArrayList<Processo> processos = new ArrayList<>();
 	public int processoId;
-	public int numeroEventos = 100;
+	public int numeroEventos = 10;
 	public int numProcessos;
 	public static Thread tRecebimento = null;
 	public boolean recebendo, enviando;
 
 	public Nodo(int processo) throws Exception {
-		super.iniciarSocket();
 		this.processoId = processo;
 		carregaProcessos();
+		super.iniciarSocket(processos.get(processoId).port);
 		iniciaRecebimentoDeMensagens();
 		executaNodo();
 	}
 
 	private void executaNodo() throws Exception {
 		Random rand = new Random();
-		for (int i = 0; i < numeroEventos; i++) {
+		while (processos.get(processoId).eventos.size() < numeroEventos) {
 			Thread.sleep((long) rand.nextInt(1000 - (500 - 1)) + 500); // evnts entre 0.5 e 1 seg
 			executaEvento();
 		}
+		tRecebimento.stop();
+		super.fecharSocket();
 		System.out.println("===Fim Eventos===");
-	}
 
+	}
+	
 	private void executaEvento() throws Exception {
 		if (Math.random() < processos.get(processoId).chance) { // prob de chance
 			System.out.println("Enviando mensagem");
