@@ -49,12 +49,14 @@ public class Nodo extends Data {
 					System.currentTimeMillis(),
 					processoId, 1);
 			proc.eventos.add(novoEvento);
+			proc.relogios[processoId] = proc.relogios[processoId] + 1;
 		} else { //existem eventos anteriores
 			Evento eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
 			novoEvento = new Evento(
 					System.currentTimeMillis(),
 					processoId, eventoAnterior.c + 1);
 			proc.eventos.add(novoEvento); //TODO: Avaliar fluxo do algoritmo de lamport
+			proc.relogios[processoId] = proc.relogios[processoId] + 1;
 		}
 		System.out.println(novoEvento.toString());
 	}
@@ -97,12 +99,17 @@ public class Nodo extends Data {
 	private void carregaProcessos() throws NumberFormatException, UnknownHostException {
 		try {
 			Scanner in = new Scanner(new FileReader("conf.txt"));
+			int qtdProcessos = -1;
 			while (in.hasNextLine()) {
 				String line = in.nextLine();
 				String[] valores = line.split(" ");
-				Processo nodo = new Processo(Integer.parseInt(valores[0]), InetAddress.getByName(valores[1]),
-						Integer.parseInt(valores[2]), Double.parseDouble(valores[3]));
-				processos.add(nodo);
+				if (valores.length == 1) {
+					qtdProcessos = Integer.parseInt(valores[0]);
+				} else {
+					Processo nodo = new Processo(Integer.parseInt(valores[0]), InetAddress.getByName(valores[1]),
+							Integer.parseInt(valores[2]), Double.parseDouble(valores[3]), qtdProcessos);
+					processos.add(nodo);
+				}
 			}
 			numProcessos = processos.size();
 		} catch (FileNotFoundException e) {
