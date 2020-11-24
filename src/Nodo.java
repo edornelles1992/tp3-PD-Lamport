@@ -49,11 +49,11 @@ public class Nodo extends Data {
 
 	private void executaEventoLocal() throws Exception {
 		Processo proc = processos.get(processoId);
-		this.adicionaEvento(proc, TipoEvento.LOCAL, null, null, null);
+		this.adicionaEvento(proc, TipoEvento.LOCAL, null, null, null, null);
 	}
 
 	private void adicionaEvento(Processo proc, TipoEvento tipo, Integer vrRlgEnviado, Integer idNodoRemetente,
-			Integer vlrRlgDaMensagem) throws Exception {
+			Integer vlrRlgDaMensagem, Integer idNodoDestino) throws Exception {
 		Evento novoEvento;
 		Evento eventoAnterior;
 		if (proc.eventos.isEmpty()) { // primeiro evento
@@ -62,7 +62,7 @@ public class Nodo extends Data {
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1);
 				break;
 			case ENVIO:
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, vrRlgEnviado);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoDestino);
 				break;
 			case RECEBIMENTO:
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoRemetente, vlrRlgDaMensagem);
@@ -78,7 +78,7 @@ public class Nodo extends Data {
 				break;
 			case ENVIO:
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1, vrRlgEnviado);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1, idNodoDestino);
 				break;
 			case RECEBIMENTO:
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
@@ -103,7 +103,7 @@ public class Nodo extends Data {
 		Processo procSelecionado = selecionaProcessoAleatorio();
 		super.conectarCliente(procSelecionado.host, procSelecionado.port);
 		this.adicionaEvento(processos.get(processoId), TipoEvento.ENVIO, processos.get(processoId).relogios[processoId],
-				null, null);
+				null, null, procSelecionado.id);
 		super.enviarMensagem(new Mensagem(processoId, processos.get(processoId).relogios));
 		super.desconectarCliente();
 		enviando = false;
@@ -134,7 +134,7 @@ public class Nodo extends Data {
 					Processo processo = processos.get(processoId);
 					try {
 						adicionaEvento(processo, TipoEvento.RECEBIMENTO, null, processoOrigem,
-								relogioOrigem[processoOrigem]);
+								relogioOrigem[processoOrigem], null);
 						recebendo = false;
 					} catch (Exception e) {
 						System.out.println("Erro ao adicionar Evento de recebimento de mensagem");

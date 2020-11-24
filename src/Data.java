@@ -8,6 +8,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Scanner;
 
 public class Data {
 
@@ -23,7 +24,7 @@ public class Data {
 		} catch (Exception e) {
 			System.out.println("Erro ao conectar no servidor!");
 			System.out.println("Encerrado Processo");
-			System.exit(0);
+			comandoParaFechar();
 		}
 	}
 	
@@ -62,10 +63,33 @@ public class Data {
 			byte[] serialized = mensagemToByteArray(mensagem);
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
+			receberAck();
 		} catch (Exception e) {
 			System.out.println("Erro ao enviar mensagem (Processo destino já terminou a execução.)");
 			System.out.println("Encerrado Processo");
-			System.exit(0);
+			comandoParaFechar();
+		}
+	}
+	
+	private static void enviarAck(DatagramPacket receiveDatagram) throws Exception {
+		try {
+			byte[] serialized = new byte[]{};
+			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length, receiveDatagram.getSocketAddress());
+			clientSocket.send(sendPacket);
+		} catch (Exception e) {
+			throw new Exception("Erro, Ack Não enviado.");
+		}
+	}
+	
+	private static void receberAck() throws Exception {
+		try {
+			byte[] receiveData = new byte[1024];
+			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
+			clientSocket.receive(receiveDatagram);
+			byte[] recBytes = receiveDatagram.getData();
+			//ack Recebido...
+		} catch (Exception e) {
+			throw new Exception("Erro, Ack Não recebido - timeout.");
 		}
 	}
 	
@@ -90,7 +114,7 @@ public class Data {
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
-	//		System.out.println("Mensagem Recebida");
+			enviarAck(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
 			Mensagem mensagem = byteArrayToMensagem(recBytes);
 			return mensagem;
@@ -106,7 +130,7 @@ public class Data {
 			e.printStackTrace();
 			System.out.println("Erro ao receber mensagem");
 			System.out.println("Encerrado Processo");
-			System.exit(0);
+			comandoParaFechar();
 			return null;
 		}
 	}
@@ -124,6 +148,14 @@ public class Data {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	protected static void comandoParaFechar() {
+		System.out.println("===Fim Eventos===");
+		System.out.println("===Digite qualquer tecla para sair===");
+		Scanner scanner = new Scanner(System.in);
+		scanner.nextLine();
+		System.exit(0);
 	}
 	
 }
