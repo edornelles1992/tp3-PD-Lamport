@@ -1,3 +1,3 @@
-java -jar lamport.jar 0
-java -jar lamport.jar 1
-java -jar lamport.jar 2
+gnome-terminal -- java -jar lamport.jar 0 &
+gnome-terminal -- java -jar lamport.jar 1 &
+gnome-terminal -- java -jar lamport.jar 2
