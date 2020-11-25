@@ -3,7 +3,7 @@ tp3-PD-Lamport
 
 Para executar o programa, acesse a pasta ./jar/ dentro do projeto e:
 
-Windows: execute o Start.bat
+Windows: execute o Start.bat <br/>
 Linux: execute o start.sh ./start.sh
 
 OBS: O arquivo conf.txt dentro da pasta serve para configurar o apontamento de cada processo 
