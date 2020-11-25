@@ -60,12 +60,15 @@ public class Nodo extends Data {
 			switch (tipo) {
 			case LOCAL:
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1);
+				proc.relogios[processoId] = proc.relogios[processoId] + 1;
 				break;
 			case ENVIO:
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoDestino);
+				proc.relogios[processoId] = proc.relogios[processoId] + 1;
 				break;
 			case RECEBIMENTO:
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, 1, idNodoRemetente, vlrRlgDaMensagem);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, vlrRlgDaMensagem + 1, idNodoRemetente, vlrRlgDaMensagem);
+				proc.relogios[processoId] = vlrRlgDaMensagem + 1;
 				break;
 			default:
 				throw new Exception("Tipo do Evento não definido");
@@ -75,15 +78,18 @@ public class Nodo extends Data {
 			case LOCAL:
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1);
+				proc.relogios[processoId] = proc.relogios[processoId] + 1;
 				break;
 			case ENVIO:
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1, idNodoDestino);
+				proc.relogios[processoId] = proc.relogios[processoId] + 1;
 				break;
 			case RECEBIMENTO:
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, eventoAnterior.c + 1, idNodoRemetente,
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, vlrRlgDaMensagem + 1, idNodoRemetente,
 						vlrRlgDaMensagem);
+				proc.relogios[processoId] = vlrRlgDaMensagem + 1;
 				break;
 			default:
 				throw new Exception("Tipo do Evento não definido");
@@ -91,7 +97,6 @@ public class Nodo extends Data {
 
 		}
 		proc.eventos.add(novoEvento); // grava evento
-		proc.relogios[processoId] = proc.relogios[processoId] + 1; // incrementa relogio local
 		System.out.println(novoEvento.toString());
 	}
 

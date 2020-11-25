@@ -75,7 +75,7 @@ public class Evento {
 		case RECEBIMENTO:
 			return m + " " + i + " " + c + "-" + i + " " + tipo.getValue() + " " + s + " " + t;
 		default:
-			return "Tipo da mensagem não informado.";
+			return "Tipo de evento não informado.";
 		}
 	}
 
