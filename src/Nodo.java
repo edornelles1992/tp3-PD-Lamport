@@ -10,7 +10,7 @@ public class Nodo extends Data {
 
 	public ArrayList<Processo> processos = new ArrayList<>();
 	public int processoId;
-	public int numeroEventos = 10;
+	public int numeroEventos = 10; //TODO: 10 pra facilitar nos teste, colocar pra 100 na entrega, 
 	public int numProcessos;
 	public static Thread tRecebimento = null;
 	public boolean recebendo, enviando;
