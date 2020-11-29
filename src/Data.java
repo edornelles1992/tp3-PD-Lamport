@@ -47,9 +47,11 @@ public class Data {
 			byte[] serialized = mensagemToByteArray(mensagem);
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
+			clientSocket.disconnect();
 	//		receberAck();
 		} catch (Exception e) {
-				System.out.println("Erro ao enviar mensagem (Processo destino já terminou a execução.)");
+				e.printStackTrace();
+				System.out.println("Erro ao enviar mensagem.");
 				System.out.println("Encerrado Processo");
 				comandoParaFechar();
 		}
