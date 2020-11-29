@@ -2,7 +2,7 @@ import java.io.Serializable;
 
 public class Mensagem implements Serializable {
 
-	static final long serialVersionUID = 4296383380001025316L;
+	static final long serialVersionUID = 1L;
 	int processoOrigem;
 	public int[] relogioOrigem;
 

@@ -13,21 +13,9 @@ import java.util.Scanner;
 public class Data {
 
 	private static DatagramSocket clientSocket;
-	private static Integer timeout = 1500;
-	
-	/**
-	 * Cria a conexão do socket com base no endereço e porta configurados.
-	 */
-	protected static void conectarCliente(InetAddress endereco, Integer porta) {
-		try {
-			clientSocket.connect(endereco, porta);
-		} catch (Exception e) {
-			System.out.println("Erro ao conectar no servidor!");
-			System.out.println("Encerrado Processo");
-			comandoParaFechar();
-		}
-	}
-	
+	private static Integer timeout = 3000;
+	static int tentativas = 0;
+
 	/**
 	 * Inicia o socket atribuindo um limite de tempo (timeout).
 	 */
@@ -40,59 +28,67 @@ public class Data {
 			e.printStackTrace();
 		}
 	}
-	
-	/**
-	 * Fecha a conexão com o socket.
-	 */
-	protected static void desconectarCliente() {
-		clientSocket.disconnect();
-	}
-	
+
 	/**
 	 * Fecha socket.
 	 */
 	protected static void fecharSocket() {
 		clientSocket.close();
 	}
-	
+
 	/**
 	 * Método que envia a mensagem para o client destino.
+	 * 
+	 * @param procSelecionado
 	 */
-	protected static void enviarMensagem(Mensagem mensagem) {
+	protected static void enviarMensagem(Mensagem mensagem, Processo procSelecionado) {
 		try {
+			clientSocket.connect(procSelecionado.host, procSelecionado.port);
 			byte[] serialized = mensagemToByteArray(mensagem);
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
-			receberAck();
+	//		receberAck();
 		} catch (Exception e) {
-			System.out.println("Erro ao enviar mensagem (Processo destino já terminou a execução.)");
-			System.out.println("Encerrado Processo");
-			comandoParaFechar();
+				System.out.println("Erro ao enviar mensagem (Processo destino já terminou a execução.)");
+				System.out.println("Encerrado Processo");
+				comandoParaFechar();
 		}
 	}
-	
+
 	private static void enviarAck(DatagramPacket receiveDatagram) throws Exception {
 		try {
-			byte[] serialized = new byte[]{};
-			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length, receiveDatagram.getSocketAddress());
+			byte[] serialized = new byte[] {1,0,0};
+			clientSocket.connect(receiveDatagram.getAddress(), receiveDatagram.getPort());
+			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
+			clientSocket.disconnect();
 		} catch (Exception e) {
 			throw new Exception("Erro, Ack Não enviado.");
 		}
 	}
-	
+
 	private static void receberAck() throws Exception {
 		try {
+			tentativas = 0;
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
-			//ack Recebido...
+			// ack Recebido...
+			clientSocket.disconnect();
 		} catch (Exception e) {
-			throw new Exception("Erro, Ack Não recebido - timeout.");
+			tentativas++;
+			if (tentativas == 3) {
+				System.out.println("Erro, Ack Não recebido - timeout.");
+				System.out.println("Erro ao enviar mensagem (Processo destino já terminou a execução.)");
+				System.out.println("Encerrado Processo");
+				comandoParaFechar();
+			} else {
+				receberAck();
+			}
 		}
 	}
-	
+
 	/**
 	 * Converte o objeto mensagem para um byteArray
 	 */
@@ -108,13 +104,13 @@ public class Data {
 			return null;
 		}
 	}
-	
+
 	protected static Mensagem receberMensagem() {
 		try {
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
-			enviarAck(receiveDatagram);
+	//		enviarAck(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
 			Mensagem mensagem = byteArrayToMensagem(recBytes);
 			return mensagem;
@@ -134,22 +130,24 @@ public class Data {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Converte de byteArray para o objeto mensagem.
 	 */
-	private static Mensagem byteArrayToMensagem(byte[] mensagem) {
+	private static synchronized Mensagem byteArrayToMensagem(byte[] mensagem) {
 		try {
-			ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(mensagem));
+			ByteArrayInputStream btr = new ByteArrayInputStream(mensagem);
+			ObjectInputStream iStream = new ObjectInputStream(btr);
 			Mensagem mensagemObj = (Mensagem) iStream.readObject();
 			iStream.close();
+			btr.close();
 			return mensagemObj;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
+
 	protected static void comandoParaFechar() {
 		System.out.println("===Fim Eventos===");
 		System.out.println("===Digite qualquer tecla para sair===");
@@ -157,5 +155,5 @@ public class Data {
 		scanner.nextLine();
 		System.exit(0);
 	}
-	
+
 }

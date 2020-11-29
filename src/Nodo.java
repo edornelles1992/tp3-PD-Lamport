@@ -10,7 +10,7 @@ public class Nodo extends Data {
 
 	public ArrayList<Processo> processos = new ArrayList<>();
 	public int processoId;
-	public int numeroEventos = 10; //TODO: 10 pra facilitar nos teste, colocar pra 100 na entrega, 
+	public int numeroEventos = 100;
 	public int numProcessos;
 	public static Thread tRecebimento = null;
 	public boolean recebendo, enviando;
@@ -52,7 +52,7 @@ public class Nodo extends Data {
 		this.adicionaEvento(proc, TipoEvento.LOCAL, null, null, null, null);
 	}
 
-	private void adicionaEvento(Processo proc, TipoEvento tipo, Integer vrRlgEnviado, Integer idNodoRemetente,
+	private synchronized void adicionaEvento(Processo proc, TipoEvento tipo, Integer vrRlgEnviado, Integer idNodoRemetente,
 			Integer vlrRlgDaMensagem, Integer idNodoDestino) throws Exception {
 		Evento novoEvento;
 		Evento eventoAnterior;
@@ -67,7 +67,7 @@ public class Nodo extends Data {
 				proc.relogios[processoId] = proc.relogios[processoId] + 1;
 				break;
 			case RECEBIMENTO:
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, vlrRlgDaMensagem + 1, idNodoRemetente, vlrRlgDaMensagem);
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, this.maxRelogios(proc.relogios[processoId], vlrRlgDaMensagem), idNodoRemetente, vlrRlgDaMensagem);
 				proc.relogios[processoId] = vlrRlgDaMensagem + 1;
 				break;
 			default:
@@ -87,7 +87,7 @@ public class Nodo extends Data {
 				break;
 			case RECEBIMENTO:
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
-				novoEvento = new Evento(System.currentTimeMillis(), processoId, vlrRlgDaMensagem + 1, idNodoRemetente,
+				novoEvento = new Evento(System.currentTimeMillis(), processoId, this.maxRelogios(proc.relogios[processoId], vlrRlgDaMensagem), idNodoRemetente,
 						vlrRlgDaMensagem);
 				proc.relogios[processoId] = vlrRlgDaMensagem + 1;
 				break;
@@ -100,17 +100,19 @@ public class Nodo extends Data {
 		System.out.println(novoEvento.toString());
 	}
 
+	private int maxRelogios(int vlrRelogioLocal, Integer vlrRlgDaMensagem) {
+		return Math.max(vlrRelogioLocal, vlrRlgDaMensagem) + 1;
+	}
+
 	private void executaEnvioDeMensagem() throws Exception {
 		while (recebendo == true) {
 			// Segura o fluxo e envio até terminar o fluxo de recebimento
 		}
 		enviando = true;
 		Processo procSelecionado = selecionaProcessoAleatorio();
-		super.conectarCliente(procSelecionado.host, procSelecionado.port);
 		this.adicionaEvento(processos.get(processoId), TipoEvento.ENVIO, processos.get(processoId).relogios[processoId],
 				null, null, procSelecionado.id);
-		super.enviarMensagem(new Mensagem(processoId, processos.get(processoId).relogios));
-		super.desconectarCliente();
+		super.enviarMensagem(new Mensagem(processoId, processos.get(processoId).relogios), procSelecionado);
 		enviando = false;
 	}
 
