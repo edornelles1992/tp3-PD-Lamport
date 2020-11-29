@@ -68,7 +68,7 @@ public class Nodo extends Data {
 				break;
 			case RECEBIMENTO:
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, this.maxRelogios(proc.relogios[processoId], vlrRlgDaMensagem), idNodoRemetente, vlrRlgDaMensagem);
-				proc.relogios[processoId] = vlrRlgDaMensagem + 1;
+				proc.relogios[processoId] = this.maxRelogios(proc.relogios[processoId], vlrRlgDaMensagem);
 				break;
 			default:
 				throw new Exception("Tipo do Evento não definido");
@@ -89,7 +89,7 @@ public class Nodo extends Data {
 				eventoAnterior = proc.eventos.get(proc.eventos.size() - 1);
 				novoEvento = new Evento(System.currentTimeMillis(), processoId, this.maxRelogios(proc.relogios[processoId], vlrRlgDaMensagem), idNodoRemetente,
 						vlrRlgDaMensagem);
-				proc.relogios[processoId] = vlrRlgDaMensagem + 1;
+				proc.relogios[processoId] = this.maxRelogios(proc.relogios[processoId], vlrRlgDaMensagem);
 				break;
 			default:
 				throw new Exception("Tipo do Evento não definido");
