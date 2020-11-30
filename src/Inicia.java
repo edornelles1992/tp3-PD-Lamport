@@ -69,7 +69,7 @@ public class Inicia {
 			return;
 		}
 
-		aguardaTodosProcessos(args);
+	//	aguardaTodosProcessos(args);
 		Thread.sleep(1000l);
 		// starta o processo...
 		new Nodo(Integer.parseInt(args[0]));
