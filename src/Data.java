@@ -6,7 +6,7 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.PortUnreachableException;
 import java.net.SocketException;
 import java.util.Scanner;
 
@@ -48,18 +48,22 @@ public class Data {
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
 			clientSocket.disconnect();
-	//		receberAck();
+			// receberAck();
+		} catch (PortUnreachableException e) {
+			System.out.println("Erro ao enviar mensagem. Processo Já terminou a execução");
+			System.out.println("Encerrado Processo Local");
+			comandoParaFechar();
 		} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Erro ao enviar mensagem.");
-				System.out.println("Encerrado Processo");
-				comandoParaFechar();
+			e.printStackTrace();
+			System.out.println("Erro ao enviar mensagem.");
+			System.out.println("Encerrado Processo");
+			comandoParaFechar();
 		}
 	}
 
 	private static void enviarAck(DatagramPacket receiveDatagram) throws Exception {
 		try {
-			byte[] serialized = new byte[] {1,0,0};
+			byte[] serialized = new byte[] { 1, 0, 0 };
 			clientSocket.connect(receiveDatagram.getAddress(), receiveDatagram.getPort());
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
@@ -112,7 +116,7 @@ public class Data {
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
-	//		enviarAck(receiveDatagram);
+			// enviarAck(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
 			Mensagem mensagem = byteArrayToMensagem(recBytes);
 			return mensagem;
@@ -151,6 +155,7 @@ public class Data {
 	}
 
 	protected static void comandoParaFechar() {
+		fecharSocket();
 		System.out.println("===Fim Eventos===");
 		System.out.println("===Digite qualquer tecla para sair===");
 		Scanner scanner = new Scanner(System.in);
